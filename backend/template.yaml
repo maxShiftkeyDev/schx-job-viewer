@@ -94,9 +94,9 @@ Outputs:
   ScheduleXJobViewerApi:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ScheduleXJobViewerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  ScheduleXJobViewerAPIHandler:
+  ScheduleXJobViewerFunction:
     Description: "ScheduleX Job Viewer Lambda Function ARN"
-    Value: !GetAtt ScheduleXJobViewerAPIHandler.Arn
-  ScheduleXJobViewerAPIHandlerRole:
+    Value: !GetAtt ScheduleXJobViewerAPI.Arn
+  ScheduleXJobViewerFunctionRole:
     Description: "Implicit IAM Role created for ScheduleX Job Viewer function"
     Value: !GetAtt ScheduleXJobViewerAPIRole.Arn
