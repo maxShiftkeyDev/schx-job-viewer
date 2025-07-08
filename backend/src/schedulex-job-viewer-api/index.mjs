@@ -1,6 +1,6 @@
 import listJobs from "./routes/list-jobs/app.mjs";
 import downloadJobLogs from "./routes/download-job-logs/app.mjs";
-import createNewJob from "./routes/create-new-job/app.mjs";
+import { createNewJob } from "./routes/create-new-job/app.mjs";
 
 export const handler = async (event, context) => {
   // handle cors options here
