@@ -23,23 +23,58 @@ const jobTable = process.env.SCHEDULEX_JOB_METADATA_TABLE_NAME;
 const s3Bucket = "schx-job-view-test-bucket";
 
 export const createNewJob = async (event, context) => {
-  // get the job metadata from the request body
-  const jobMetadata = JSON.parse(event.body);
-  console.log("jobMetadata", jobMetadata);
+  try {
+    // get the job metadata from the request body
+    const jobMetadata = JSON.parse(event.body);
+    console.log("jobMetadata", jobMetadata);
 
-  // create a new entry in the dynamodb table for the job
-  const newJob = await createJobInDynamoDB(jobMetadata);
+    // create a new entry in the dynamodb table for the job
+    const newJob = await createJobInDynamoDB(jobMetadata);
 
-  // generate a pro-signed url for the job to be uploaded to s3
-  const presignedUrl = await generatePresignedUrlForJob(newJob);
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message:
-        "hello there! your job has been created and a presigned url has been generated for you to upload your job logs to s3",
-      presignedUrl: presignedUrl,
-    }),
-  };
+    // generate a pro-signed url for the job to be uploaded to s3
+    const presignedUrl = await generatePresignedUrlForJob(newJob);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message:
+          "hello there! your job has been created and a presigned url has been generated for you to upload your job logs to s3",
+        presignedUrl: presignedUrl,
+      }),
+    };
+  } catch (error) {
+    console.error("Error in createNewJob:", error);
+
+    // Handle different types of errors
+    if (error.name === "ConditionalCheckFailedException") {
+      return {
+        statusCode: 409,
+        body: JSON.stringify({
+          error: "Job with this ID already exists",
+          message: "A job with this ID has already been created",
+        }),
+      };
+    }
+
+    if (error.name === "SerializationException") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error: "Invalid data format",
+          message: "The job metadata contains invalid data types",
+        }),
+      };
+    }
+
+    // Generic error response
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: "Internal server error",
+        message: "An unexpected error occurred while creating the job",
+      }),
+    };
+  }
 };
 
 const createJobInDynamoDB = async (jobMetadata) => {
@@ -51,8 +86,8 @@ const createJobInDynamoDB = async (jobMetadata) => {
       companyName: { S: jobMetadata.company_name },
       jobType: { S: jobMetadata.job_type },
       tenantName: { S: jobMetadata.tenant_name },
-      totalItemsProcessed: { N: jobMetadata.total_items_processed },
-      totalInvalidItems: { N: jobMetadata.total_invalid_items },
+      totalItemsProcessed: { N: jobMetadata.total_items_processed.toString() },
+      totalInvalidItems: { N: jobMetadata.total_invalid_items.toString() },
       jobTimestamp: { S: jobMetadata.job_timestamp },
     },
     ConditionExpression: "attribute_not_exists(jobId)",
@@ -60,14 +95,14 @@ const createJobInDynamoDB = async (jobMetadata) => {
 
   const response = await dynamoDBClient.send(command);
   console.log("response", response);
-  return response;
+  return jobMetadata; // Return the original metadata for the presigned URL
 };
 
 const generatePresignedUrlForJob = async (job) => {
   // generate a presigned url for the job to be uploaded to s3
   const command = new PutObjectCommand({
     Bucket: s3Bucket,
-    Key: `${job.jobId}-${job.companyName}`,
+    Key: `${job.jobId}-${job.companyName}.json`,
   });
 
   try {
