@@ -67,19 +67,8 @@ Resources:
             Path: /download-job-logs
             Method: get
     Policies:
-      - PolicyName: ScheduleXJobViewerApiPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-                - dynamodb:DeleteItem
-              Resource: !GetAtt ScheduleXJobMetadataTable.Arn
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ScheduleXJobMetadataTable
 
 Outputs:
   # API Gateway endpoint URL
