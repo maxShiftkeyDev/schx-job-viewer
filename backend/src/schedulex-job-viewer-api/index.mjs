@@ -1,3 +1,7 @@
+import listJobs from "./routes/list-jobs/app.mjs";
+import downloadJobLogs from "./routes/download-job-logs/app.mjs";
+import createNewJob from "./routes/create-new-job/app.mjs";
+
 export const handler = async (event, context) => {
   // handle cors options here
   if (event.httpMethod === "OPTIONS") {
@@ -24,32 +28,14 @@ export const handler = async (event, context) => {
   }
 
   if (httpMethod === "GET" && path === "/list-jobs") {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message:
-          "hello world - you requested a list of jobs... well it isnt ready yetbut we're getting there!",
-      }),
-    };
+    return listJobs(event, context);
   }
 
   if (httpMethod === "GET" && path === "/download-job-logs") {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message:
-          "hello world - you requested job logs... well it isnt ready yetbut we're getting there!",
-      }),
-    };
+    return downloadJobLogs(event, context);
   }
 
   if (httpMethod === "POST" && path === "/create-new-job") {
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message:
-          "hello world - you requested to create a new job... well it isnt ready yetbut we're getting there!",
-      }),
-    };
+    return createNewJob(event, context);
   }
 };
