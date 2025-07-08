@@ -8,7 +8,7 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 30
 
 Resources:
   ##########################################
@@ -27,7 +27,7 @@ Resources:
   ##########################################
   # DynamoDB Table - ScheduleX Job Metadata Table
   ##########################################
-  ScheduleX-Job-Metadata-Table:
+  ScheduleXJobMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: schedulex-job-metadata
@@ -50,7 +50,7 @@ Resources:
   ##########################################
   # Create New Job Function
   ##########################################
-  ScheduleX-Job-Viewer-API:
+  ScheduleXJobViewerAPI:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
@@ -91,18 +91,16 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
                 - dynamodb:DeleteItem
-              Resource: !GetAtt ScheduleX-Job-Metadata-Table.Arn
+              Resource: !GetAtt ScheduleXJobMetadataTable.Arn
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  # API Gateway endpoint URL
+  ScheduleXJobViewerApi:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ScheduleXJobViewerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ScheduleXJobViewerAPIHandler:
+    Description: "ScheduleX Job Viewer Lambda Function ARN"
+    Value: !GetAtt ScheduleXJobViewerAPIHandler.Arn
+  ScheduleXJobViewerAPIHandlerRole:
+    Description: "Implicit IAM Role created for ScheduleX Job Viewer function"
+    Value: !GetAtt ScheduleXJobViewerAPIRole.Arn
