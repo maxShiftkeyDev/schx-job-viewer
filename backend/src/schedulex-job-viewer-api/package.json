@@ -1,11 +1,11 @@
 {
-  "name": "completed-job-handler",
+  "name": "schedulex-job-viewer-api",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "app.mjs",
+  "main": "index.mjs",
   "scripts": {
     "test": "mocha tests/unit/"
   },
