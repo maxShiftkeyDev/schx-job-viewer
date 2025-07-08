@@ -49,7 +49,7 @@ Resources:
       Environment:
         Variables:
           SCHEDULEX_JOB_METADATA_TABLE_NAME: !Ref ScheduleXJobMetadataTable
-          AWS_REGION: !Ref AWS::Region
+          PROJECT_REGION: !Ref AWS::Region
       Events:
         CreateNewJob:
           Type: Api

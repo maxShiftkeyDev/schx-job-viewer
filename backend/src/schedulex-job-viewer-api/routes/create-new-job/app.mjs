@@ -12,11 +12,11 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+  region: process.env.PROJECT_REGION,
 });
 
 const dynamoDBClient = new DynamoDBClient({
-  region: process.env.AWS_REGION,
+  region: process.env.PROJECT_REGION,
 });
 
 const jobTable = process.env.SCHEDULEX_JOB_METADATA_TABLE_NAME;
