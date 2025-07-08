@@ -1,0 +1,75 @@
+name: SAM Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+env:
+  AWS_REGION: us-east-1
+  STACK_NAME: schx-job-viewer-dev
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/src/schedulex-job-viewer-api/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Install dependencies
+        working-directory: backend/src/schedulex-job-viewer-api
+        run: npm ci
+
+      - name: Run tests
+        working-directory: backend/src/schedulex-job-viewer-api
+        run: npm test
+        continue-on-error: true
+
+      - name: Validate SAM template
+        working-directory: backend
+        run: sam validate
+
+      - name: Build SAM application
+        working-directory: backend
+        run: sam build --parallel
+
+      - name: Deploy to dev environment
+        working-directory: backend
+        if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+        run: |
+          sam deploy \
+            --stack-name ${{ env.STACK_NAME }} \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Output deployment info
+        if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+        working-directory: backend
+        run: |
+          echo "Deployment completed for stack: ${{ env.STACK_NAME }}"
+          echo "Region: ${{ env.AWS_REGION }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"

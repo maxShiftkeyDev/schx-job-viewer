@@ -1,32 +1,97 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   schx-job-viewer
 
   Sample SAM Template for schx-job-viewer
-  
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
 
 Resources:
-  HelloWorldFunction:
+  ##########################################
+  # API Gateway - shared for all endpoints
+  ##########################################
+  ScheduleX-Job-Viewer-Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: schedulex-job-viewer-api
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST,PUT'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'*'"
+
+  ##########################################
+  # DynamoDB Table - ScheduleX Job Metadata Table
+  ##########################################
+  ScheduleX-Job-Metadata-Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: schedulex-job-metadata
+      AttributeDefinitions:
+        - AttributeName: jobId
+          AttributeType: S
+        - AttributeName: companyName
+          AttributeType: S
+      KeySchema:
+        - AttributeName: jobId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: CompanyNameIndex
+          KeySchema:
+            - AttributeName: companyName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  ##########################################
+  # Create New Job Function
+  ##########################################
+  ScheduleX-Job-Viewer-API:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
+      CodeUri: src/schedulex-job-viewer-api
+      Handler: index.handler
       Architectures:
         - x86_64
       Events:
-        HelloWorld:
+        CreateNewJob:
           Type: Api
           Properties:
-            Path: /hello
+            Path: /create-new-job
+            Method: post
+        ListJobs:
+          Type: Api
+          Properties:
+            Path: /list-jobs
+            Method: get
+        DownloadJobLogs:
+          Type: Api
+          Properties:
+            Path: /download-job-logs
             Method: get
     Metadata:
       DockerTag: nodejs22.x-v1
-      DockerContext: ./hello-world
+      DockerContext: ./src/schedulex-job-viewer-api
       Dockerfile: Dockerfile
+    Policies:
+      - PolicyName: ScheduleXJobViewerApiPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt ScheduleX-Job-Metadata-Table.Arn
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
