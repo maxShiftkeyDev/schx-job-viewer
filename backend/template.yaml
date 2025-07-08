@@ -53,9 +53,9 @@ Resources:
   ScheduleXJobViewerAPI:
     Type: AWS::Serverless::Function
     Properties:
-      PackageType: Image
       CodeUri: src/schedulex-job-viewer-api
       Handler: index.handler
+      Runtime: nodejs22.x
       Architectures:
         - x86_64
       Events:
@@ -74,10 +74,6 @@ Resources:
           Properties:
             Path: /download-job-logs
             Method: get
-    Metadata:
-      DockerTag: nodejs22.x-v1
-      DockerContext: ./src/schedulex-job-viewer-api
-      Dockerfile: Dockerfile
     Policies:
       - PolicyName: ScheduleXJobViewerApiPolicy
         PolicyDocument:
