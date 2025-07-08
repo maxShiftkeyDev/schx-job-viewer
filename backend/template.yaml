@@ -31,6 +31,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: schedulex-job-metadata
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: jobId
           AttributeType: S
