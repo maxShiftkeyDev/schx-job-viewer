@@ -25,6 +25,7 @@ const s3Bucket = "schx-job-view-test-bucket";
 export const createNewJob = async (event, context) => {
   // get the job metadata from the request body
   const jobMetadata = JSON.parse(event.body);
+  console.log("jobMetadata", jobMetadata);
 
   // create a new entry in the dynamodb table for the job
   const newJob = await createJobInDynamoDB(jobMetadata);
