@@ -1,23 +1,55 @@
-/**
- *
- * Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
- * @param {Object} event - API Gateway Lambda Proxy Input Format
- *
- * Context doc: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
- * @param {Object} context
- *
- * Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
- * @returns {Object} object - API Gateway Lambda Proxy Output Format
- *
- */
-
 export const handler = async (event, context) => {
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "hello world - lets got moving! Creds are added baby!",
-    }),
-  };
+  // handle cors options here
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    };
+  }
 
-  return response;
+  // handle the actual request here
+  const { httpMethod, path } = event;
+
+  if (httpMethod === "GET" && path === "/") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "hello world - you didnt get an error, so that's a good sign!",
+      }),
+    };
+  }
+
+  if (httpMethod === "GET" && path === "/list-jobs") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message:
+          "hello world - you requested a list of jobs... well it isnt ready yetbut we're getting there!",
+      }),
+    };
+  }
+
+  if (httpMethod === "GET" && path === "/download-job-logs") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message:
+          "hello world - you requested job logs... well it isnt ready yetbut we're getting there!",
+      }),
+    };
+  }
+
+  if (httpMethod === "POST" && path === "/create-new-job") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message:
+          "hello world - you requested to create a new job... well it isnt ready yetbut we're getting there!",
+      }),
+    };
+  }
 };
