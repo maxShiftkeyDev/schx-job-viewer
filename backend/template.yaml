@@ -14,7 +14,7 @@ Resources:
   ##########################################
   # API Gateway - shared for all endpoints
   ##########################################
-  ScheduleX-Job-Viewer-Api:
+  ScheduleXJobViewerApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
