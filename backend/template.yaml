@@ -46,6 +46,10 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          SCHEDULEX_JOB_METADATA_TABLE_NAME: !Ref ScheduleXJobMetadataTable
+          AWS_REGION: !Ref AWS::Region
       Events:
         CreateNewJob:
           Type: Api
@@ -88,3 +92,9 @@ Outputs:
   ScheduleXJobViewerFunctionRole:
     Description: "Implicit IAM Role created for ScheduleX Job Viewer function"
     Value: !GetAtt ScheduleXJobViewerAPIRole.Arn
+  ScheduleXJobMetadataTableName:
+    Description: "Name of the DynamoDB table for job metadata"
+    Value: !Ref ScheduleXJobMetadataTable
+  ScheduleXJobMetadataTableArn:
+    Description: "ARN of the DynamoDB table for job metadata"
+    Value: !GetAtt ScheduleXJobMetadataTable.Arn
