@@ -12,19 +12,6 @@ Globals:
 
 Resources:
   ##########################################
-  # API Gateway - shared for all endpoints
-  ##########################################
-  ScheduleXJobViewerApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      Name: schedulex-job-viewer-api
-      Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT'"
-        AllowHeaders: "'Content-Type'"
-        AllowOrigin: "'*'"
-
-  ##########################################
   # DynamoDB Table - ScheduleX Job Metadata Table
   ##########################################
   ScheduleXJobMetadataTable:
@@ -94,7 +81,7 @@ Outputs:
   # API Gateway endpoint URL
   ScheduleXJobViewerApi:
     Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ScheduleXJobViewerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ScheduleXJobViewerFunction:
     Description: "ScheduleX Job Viewer Lambda Function ARN"
     Value: !GetAtt ScheduleXJobViewerAPI.Arn
