@@ -10,42 +10,88 @@ const s3Client = new S3Client({
   region: process.env.PROJECT_REGION,
 });
 
-const s3Bucket = "schx-job-view-test-bucket";
+const s3Bucket = process.env.S3_BUCKET_NAME;
 
 const downloadJobLogs = async (event, context) => {
-  const s3ObjectName = JSON.parse(event.body).s3ObjectName;
-  console.log("s3ObjectName", s3ObjectName);
+  try {
+    const { s3ObjectName } = JSON.parse(event.body);
+    console.log("s3ObjectName", s3ObjectName);
 
-  const command = new GetObjectCommand({
-    Bucket: s3Bucket,
-    Key: s3ObjectName,
-  });
+    if (!s3ObjectName) {
+      return {
+        statusCode: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+        },
+        body: JSON.stringify({
+          error: "Missing s3ObjectName",
+          message: "s3ObjectName is required in the request body",
+        }),
+      };
+    }
 
-  const response = await s3Client.send(command);
-  console.log("response", response);
+    const command = new GetObjectCommand({
+      Bucket: s3Bucket,
+      Key: s3ObjectName,
+    });
 
-  // if the response is not found, return a 404
-  if (response.Body === undefined) {
+    // Generate presigned URL for download
+    const presignedUrl = await getSignedUrl(s3Client, command, {
+      expiresIn: 5 * 60, // 5 minutes
+    });
+
+    console.log("Generated presigned URL for download:", s3ObjectName);
+
     return {
-      statusCode: 404,
-      body: JSON.stringify({ message: "Job logs not found" }),
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+      },
+      body: JSON.stringify({
+        message: "Successfully generated download URL for job logs",
+        presignedUrl: presignedUrl,
+        s3ObjectName: s3ObjectName,
+      }),
+    };
+  } catch (error) {
+    console.error("Error in downloadJobLogs:", error);
+
+    if (error.name === "NoSuchKey") {
+      return {
+        statusCode: 404,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+        },
+        body: JSON.stringify({
+          error: "Job logs not found",
+          message: "The requested job logs do not exist in S3",
+        }),
+      };
+    }
+
+    return {
+      statusCode: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+      },
+      body: JSON.stringify({
+        error: "Internal server error",
+        message: "An unexpected error occurred while generating download URL",
+      }),
     };
   }
-
-  // if the response is found, generate a presigned url to download the object
-  const url = await getSignedUrl(s3Client, command, {
-    expiresIn: 60 * 5, // 5 mins
-  });
-  console.log("url", url);
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message:
-        "hello world - you requested job logs... well here is a link to get them logs baby!",
-      presignedUrl: url,
-    }),
-  };
 };
 
 export default downloadJobLogs;

@@ -12,6 +12,19 @@ Globals:
 
 Resources:
   ##########################################
+  # S3 Bucket for Job Logs
+  ##########################################
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: schx-job-view-test-bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ##########################################
   # DynamoDB Table - ScheduleX Job Metadata Table
   ##########################################
   ScheduleXJobMetadataTable:
@@ -50,6 +63,7 @@ Resources:
         Variables:
           SCHEDULEX_JOB_METADATA_TABLE_NAME: !Ref ScheduleXJobMetadataTable
           PROJECT_REGION: !Ref AWS::Region
+          S3_BUCKET_NAME: !Ref S3Bucket
       Events:
         CreateNewJob:
           Type: Api
@@ -69,6 +83,10 @@ Resources:
     Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref ScheduleXJobMetadataTable
+      - S3ReadPolicy:
+          BucketName: !Ref S3Bucket
+      - S3WritePolicy:
+          BucketName: !Ref S3Bucket
 
 Outputs:
   # API Gateway endpoint URL
