@@ -28,11 +28,13 @@ export const createNewJob = async (event, context) => {
     const jobMetadata = JSON.parse(event.body);
     console.log("jobMetadata", jobMetadata);
 
+    const s3ObjectKey = `${jobMetadata.jobId}-${jobMetadata.company_name}.json`;
+
     // create a new entry in the dynamodb table for the job
-    const newJob = await createJobInDynamoDB(jobMetadata);
+    const newJob = await createJobInDynamoDB(jobMetadata, s3ObjectKey);
 
     // generate a pro-signed url for the job to be uploaded to s3
-    const presignedUrl = await generatePresignedUrlForJob(newJob);
+    const presignedUrl = await generatePresignedUrlForJob(newJob, s3ObjectKey);
 
     return {
       statusCode: 200,
@@ -77,7 +79,7 @@ export const createNewJob = async (event, context) => {
   }
 };
 
-const createJobInDynamoDB = async (jobMetadata) => {
+const createJobInDynamoDB = async (jobMetadata, s3ObjectKey) => {
   // create a new entry in the dynamodb table for the job
   const command = new PutItemCommand({
     TableName: jobTable,
@@ -89,6 +91,7 @@ const createJobInDynamoDB = async (jobMetadata) => {
       totalItemsProcessed: { N: jobMetadata.total_items_processed.toString() },
       totalInvalidItems: { N: jobMetadata.total_invalid_items.toString() },
       jobTimestamp: { S: jobMetadata.job_timestamp },
+      s3ObjectKey: { S: s3ObjectKey },
     },
     ConditionExpression: "attribute_not_exists(jobId)",
   });
@@ -98,11 +101,11 @@ const createJobInDynamoDB = async (jobMetadata) => {
   return jobMetadata; // Return the original metadata for the presigned URL
 };
 
-const generatePresignedUrlForJob = async (job) => {
+const generatePresignedUrlForJob = async (job, s3ObjectKey) => {
   // generate a presigned url for the job to be uploaded to s3
   const command = new PutObjectCommand({
     Bucket: s3Bucket,
-    Key: `${job.jobId}-${job.companyName}.json`,
+    Key: s3ObjectKey,
   });
 
   try {
