@@ -31,11 +31,11 @@ export const handler = async (event, context) => {
     return listJobs(event, context);
   }
 
-  if (httpMethod === "GET" && path === "/download-job-logs") {
+  if (httpMethod === "POST" && path === "/download-job-logs") {
     return downloadJobLogs(event, context);
   }
 
-  if (httpMethod === "POST" && path === "/create-new-job") {
+  if (httpMethod === "PUT" && path === "/create-new-job") {
     return createNewJob(event, context);
   }
 };

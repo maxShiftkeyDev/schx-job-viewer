@@ -22,6 +22,7 @@ const listJobs = async (event, context) => {
       totalItemsProcessed: parseInt(item.totalItemsProcessed.N),
       totalInvalidItems: parseInt(item.totalInvalidItems.N),
       jobTimestamp: item.jobTimestamp.S,
+      s3ObjectKey: item.s3ObjectKey.S,
     }));
 
     return {
