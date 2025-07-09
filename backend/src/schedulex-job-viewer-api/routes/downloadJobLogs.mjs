@@ -38,7 +38,7 @@ const downloadJobLogs = async (event, context) => {
       Key: s3ObjectName,
     });
 
-    // Generate presigned URL for download
+    // Generate presigned URL for download without checking if object exists
     const presignedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 5 * 60, // 5 minutes
     });
