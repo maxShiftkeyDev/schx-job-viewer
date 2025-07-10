@@ -12,6 +12,21 @@ Globals:
 
 Resources:
   ##########################################
+  # API Gateway with IAM Authorization
+  ##########################################
+  ScheduleXJobViewerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: schedulex-job-viewer-api
+      Auth:
+        DefaultAuthorizer: IAM
+      Cors:
+        AllowMethods: "'OPTIONS,GET,POST,PUT'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'*'"
+
+  ##########################################
   # S3 Bucket for Job Logs
   ##########################################
   S3Bucket:
@@ -101,16 +116,19 @@ Resources:
         CreateNewJob:
           Type: Api
           Properties:
+            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /create-new-job
             Method: put
         ListJobs:
           Type: Api
           Properties:
+            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /list-jobs
             Method: get
         DownloadJobLogs:
           Type: Api
           Properties:
+            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /download-job-logs
             Method: post
     Policies:
@@ -123,7 +141,7 @@ Outputs:
   # API Gateway endpoint URL
   ScheduleXJobViewerApi:
     Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${ScheduleXJobViewerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ScheduleXJobViewerFunction:
     Description: "ScheduleX Job Viewer Lambda Function ARN"
     Value: !GetAtt ScheduleXJobViewerAPI.Arn
