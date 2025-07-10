@@ -14,6 +14,7 @@ export const handler = async (event, context) => {
       },
     };
   }
+  // just adding this to see if the api is working
   console.log("event", event);
   // handle the actual request here
   const { httpMethod, path } = event;
