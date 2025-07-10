@@ -14,7 +14,7 @@ export const handler = async (event, context) => {
       },
     };
   }
-
+  console.log("event", event);
   // handle the actual request here
   const { httpMethod, path } = event;
 
