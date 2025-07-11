@@ -28,7 +28,7 @@ export const createNewJob = async (event, context) => {
     const jobMetadata = JSON.parse(event.body);
     console.log("jobMetadata", jobMetadata);
 
-    const s3ObjectKey = `${jobMetadata.job_d}-${jobMetadata.company_name.toLowerCase().replace(/ /g, "")}.json`;
+    const s3ObjectKey = `${jobMetadata.job_id}-${jobMetadata.company_name.toLowerCase().replace(/ /g, "")}.json`;
 
     // create a new entry in the dynamodb table for the job
     const newJob = await createJobInDynamoDB(jobMetadata, s3ObjectKey);
@@ -101,7 +101,7 @@ const createJobInDynamoDB = async (jobMetadata, s3ObjectKey) => {
   return jobMetadata; // Return the original metadata for the presigned URL
 };
 
-const generatePresignedUrlForJob = async (job, s3ObjectKey) => {
+const generatePresignedUrlForJob = async (s3ObjectKey) => {
   // generate a presigned url for the job to be uploaded to s3
   const command = new PutObjectCommand({
     Bucket: s3Bucket,
@@ -113,7 +113,7 @@ const generatePresignedUrlForJob = async (job, s3ObjectKey) => {
     const presignedUrl = await getSignedUrl(s3Client, command, {
       expiresIn: 5 * 60, // 5 minutes
     });
-    console.log("Generated presigned URL for job:", job.jobId);
+    console.log("Generated presigned URL for key:", s3ObjectKey);
     return presignedUrl;
   } catch (error) {
     console.error("Error generating presigned URL:", error);
