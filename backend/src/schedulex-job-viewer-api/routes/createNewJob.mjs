@@ -28,7 +28,7 @@ export const createNewJob = async (event, context) => {
     const jobMetadata = JSON.parse(event.body);
     console.log("jobMetadata", jobMetadata);
 
-    const s3ObjectKey = `${jobMetadata.jobId}-${jobMetadata.company_name.toLowerCase()}.json`;
+    const s3ObjectKey = `${jobMetadata.job_d}-${jobMetadata.company_name.toLowerCase().replace(/ /g, "")}.json`;
 
     // create a new entry in the dynamodb table for the job
     const newJob = await createJobInDynamoDB(jobMetadata, s3ObjectKey);

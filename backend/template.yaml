@@ -85,6 +85,11 @@ Resources:
           TableName: !Ref ScheduleXJobMetadataTable
       - S3CrudPolicy:
           BucketName: !Ref S3Bucket
+      - Statement:
+          Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource: !Sub "${S3Bucket.Arn}/*"
 
 Outputs:
   # API Gateway endpoint URL
