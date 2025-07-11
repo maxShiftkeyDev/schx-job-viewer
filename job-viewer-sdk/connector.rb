@@ -25,6 +25,8 @@
         object_definitions[:create_new_employee_job_input]
       },
       execute: ->(connection, input){
+        puts "creating new job"
+        puts input
         # create new job from job viewer sdk
         # api call to create new job - https://vsa99h8mq4.execute-api.us-east-1.amazonaws.com/Prod/create-new-job
         job_id = input[:job_id]
@@ -35,9 +37,15 @@
         total_invalid_items = input[:total_invalid_items]
         job_timestamp = input[:job_timestamp]
         employees = input[:employees]
+        puts "employees"
+        puts employees
         
         response = call('create_new_employee_job', job_id, company_name, job_type, tenant_name, total_items_processed, total_invalid_items, job_timestamp)
-        puts response
+        presigned_url = response['presignedUrl']
+        job_log = employees.to_json
+        s3_response = call('upload_job_log_to_s3', presigned_url, job_log)
+
+        
         return response
       },
     },
@@ -57,13 +65,9 @@
       }
     }
   },
-
-  triggers: {
-
-  },
-
   methods: {
     create_new_employee_job: ->(job_id, company_name, job_type, tenant_name, total_items_processed, total_invalid_items, job_timestamp) {
+      puts "creating new job"
       input = {
         job_id: job_id,
         company_name: company_name,
@@ -74,6 +78,24 @@
         job_timestamp: job_timestamp,
       }
       response = put('https://vsa99h8mq4.execute-api.us-east-1.amazonaws.com/Prod/create-new-job', input)
+      puts response
+      response
+    },
+    upload_job_log_to_s3: ->(presigned_url, job_log){
+      puts "uploading job log to s3"
+      
+      if presigned_url.nil?
+        puts "ERROR: presigned_url is nil!"
+        return { error: "No presigned URL received from API" }
+      end
+      
+      # Convert job_log to JSON string for S3 upload
+      json_data = job_log.is_a?(String) ? job_log : job_log.to_json
+      
+      # For S3 presigned URLs, we need to send the data as the body
+      # The presigned URL already contains all necessary headers
+      response = put(presigned_url, json_data)
+      puts "S3 Upload Response: #{response}"
       response
     }
   },
@@ -118,9 +140,10 @@
             type: :string,
           },
           {
-            name: "emnployees",
+            name: "employees",
             label: "Employees",
             type: :array,
+            of: :object,
             properties: [
               {
                 name: "first_name",
