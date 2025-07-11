@@ -81,6 +81,28 @@
       puts response
       response
     },
+    json_to_csv: ->(json_data) {
+      # Parse JSON if it's a string
+      data = json_data.is_a?(String) ? JSON.parse(json_data) : json_data
+      
+      # Define CSV headers
+      headers = ["first_name", "last_name", "email"]
+      
+      # Start with headers
+      csv_content = headers.join(",") + "\n"
+      
+      # Add data rows
+      data.each do |employee|
+        row = [
+          employee["first_name"] || "",
+          employee["last_name"] || "",
+          employee["email"] || ""
+        ].map { |field| field.to_s.gsub('"', '""') } # Escape quotes
+        csv_content += row.join(",") + "\n"
+      end
+      
+      csv_content
+    },
     upload_job_log_to_s3: ->(presigned_url, job_log){
       puts "uploading job log to s3"
       
@@ -89,13 +111,12 @@
         return { error: "No presigned URL received from API" }
       end
       
-      # Convert job_log to JSON string for S3 upload
-      json_data = job_log.is_a?(String) ? job_log : job_log.to_json
+      # Convert JSON to CSV
+      csv_data = call('json_to_csv', job_log)
       
-      # For S3 presigned URLs, we need to send the data as the body
-      # The presigned URL already contains all necessary headers
-      response = put(presigned_url, json_data)
-        .headers("Content-Type" => "application/json")
+      # Upload CSV data to S3
+      response = put(presigned_url, csv_data)
+        .headers("Content-Type" => "text/csv")
       puts "S3 Upload Response: #{response}"
       response
     }
@@ -209,6 +230,27 @@
             label: "S3 Object Key",
             type: :string,
           }
+        ]
+      }
+    },
+    list_jobs_output_count: {
+      fields: ->(_connection, _config_fields, object_definitions){
+        [
+          {
+            name: "count",
+            label: "Count",
+            type: :integer,
+          }
+        ]
+      }
+    }
+  },
+
+  pick_lists: {
+
+  }
+}
+
         ]
       }
     },

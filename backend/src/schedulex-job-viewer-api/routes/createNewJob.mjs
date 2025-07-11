@@ -28,7 +28,7 @@ export const createNewJob = async (event, context) => {
     const jobMetadata = JSON.parse(event.body);
     console.log("jobMetadata", jobMetadata);
 
-    const s3ObjectKey = `${jobMetadata.job_id}-${jobMetadata.company_name.toLowerCase().replace(/ /g, "")}.json`;
+    const s3ObjectKey = `${jobMetadata.job_id}-${jobMetadata.company_name.toLowerCase().replace(/ /g, "")}.csv`;
 
     // create a new entry in the dynamodb table for the job
     const newJob = await createJobInDynamoDB(jobMetadata, s3ObjectKey);
@@ -106,7 +106,7 @@ const generatePresignedUrlForJob = async (s3ObjectKey) => {
   const command = new PutObjectCommand({
     Bucket: s3Bucket,
     Key: s3ObjectKey,
-    ContentType: "application/json",
+    ContentType: "text/csv",
   });
 
   try {

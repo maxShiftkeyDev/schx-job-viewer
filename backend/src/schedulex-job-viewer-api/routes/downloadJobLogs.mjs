@@ -37,7 +37,7 @@ const downloadJobLogs = async (event, context) => {
       Bucket: s3Bucket,
       Key: s3ObjectName,
       ResponseContentDisposition: `attachment; filename="${s3ObjectName}"`,
-      ResponseContentType: "application/json",
+      ResponseContentType: "text/csv",
     });
 
     // Generate presigned URL for download without checking if object exists
@@ -50,7 +50,7 @@ const downloadJobLogs = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/csv",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
