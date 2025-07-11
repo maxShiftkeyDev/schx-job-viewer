@@ -12,21 +12,6 @@ Globals:
 
 Resources:
   ##########################################
-  # API Gateway with IAM Authorization
-  ##########################################
-  ScheduleXJobViewerApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      Name: schedulex-job-viewer-api
-      Auth:
-        DefaultAuthorizer: IAM
-      Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT'"
-        AllowHeaders: "'Content-Type'"
-        AllowOrigin: "'*'"
-
-  ##########################################
   # S3 Bucket for Job Logs
   ##########################################
   S3Bucket:
@@ -64,39 +49,6 @@ Resources:
             ProjectionType: ALL
 
   ##########################################
-  # IAM User for SDK Authentication
-  ##########################################
-  SDKUser:
-    Type: AWS::IAM::User
-    Properties:
-      UserName: schx-job-viewer-sdk-user
-      Path: /
-      Policies:
-        - PolicyName: SDKAccessPolicy
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - execute-api:Invoke
-                Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*"
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                Resource:
-                  - !Sub "arn:aws:s3:::${S3Bucket}/*"
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                Resource: !Sub "arn:aws:s3:::${S3Bucket}"
-
-  SDKUserAccessKey:
-    Type: AWS::IAM::AccessKey
-    Properties:
-      UserName: !Ref SDKUser
-
-  ##########################################
   # Create New Job Function
   ##########################################
   ScheduleXJobViewerAPI:
@@ -116,19 +68,16 @@ Resources:
         CreateNewJob:
           Type: Api
           Properties:
-            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /create-new-job
             Method: put
         ListJobs:
           Type: Api
           Properties:
-            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /list-jobs
             Method: get
         DownloadJobLogs:
           Type: Api
           Properties:
-            RestApiId: !Ref ScheduleXJobViewerApi
             Path: /download-job-logs
             Method: post
     Policies:
@@ -139,9 +88,6 @@ Resources:
 
 Outputs:
   # API Gateway endpoint URL
-  ScheduleXJobViewerApi:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ScheduleXJobViewerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ScheduleXJobViewerFunction:
     Description: "ScheduleX Job Viewer Lambda Function ARN"
     Value: !GetAtt ScheduleXJobViewerAPI.Arn
@@ -154,9 +100,3 @@ Outputs:
   ScheduleXJobMetadataTableArn:
     Description: "ARN of the DynamoDB table for job metadata"
     Value: !GetAtt ScheduleXJobMetadataTable.Arn
-  SDKUserAccessKeyId:
-    Description: "Access Key ID for SDK authentication"
-    Value: !Ref SDKUserAccessKey
-  SDKUserSecretAccessKey:
-    Description: "Secret Access Key for SDK authentication (save this securely!)"
-    Value: !GetAtt SDKUserAccessKey.SecretAccessKey

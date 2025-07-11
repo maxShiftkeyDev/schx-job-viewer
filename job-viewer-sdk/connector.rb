@@ -1,5 +1,5 @@
 {
-  title: 'Job Manager SDK',
+  title: 'Job Viewer Sdk',
 
   connection: {
     authorization: {
@@ -16,7 +16,13 @@
   end,
 
   actions: {
-
+    get_job_list: {
+      title: 'Get Jobs List',
+      description: 'Get Job List',
+      execute: ->(){
+        puts 'Get Job List'
+      }
+    }
   },
 
   triggers: {
