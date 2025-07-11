@@ -34,7 +34,7 @@ export const createNewJob = async (event, context) => {
     const newJob = await createJobInDynamoDB(jobMetadata, s3ObjectKey);
 
     // generate a pro-signed url for the job to be uploaded to s3
-    const presignedUrl = await generatePresignedUrlForJob(newJob, s3ObjectKey);
+    const presignedUrl = await generatePresignedUrlForJob(s3ObjectKey);
 
     return {
       statusCode: 200,
