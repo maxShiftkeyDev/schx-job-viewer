@@ -106,6 +106,7 @@ const generatePresignedUrlForJob = async (job, s3ObjectKey) => {
   const command = new PutObjectCommand({
     Bucket: s3Bucket,
     Key: s3ObjectKey,
+    ContentType: "application/json",
   });
 
   try {
