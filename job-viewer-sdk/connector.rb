@@ -94,7 +94,9 @@
       
       # For S3 presigned URLs, we need to send the data as the body
       # The presigned URL already contains all necessary headers
-      response = put(presigned_url, json_data)
+      response = put(presigned_url)
+        .headers("Content-Type" => "application/json")
+        .body(json_data)
       puts "S3 Upload Response: #{response}"
       response
     }
