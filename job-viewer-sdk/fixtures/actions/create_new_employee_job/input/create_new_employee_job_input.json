@@ -1,0 +1,21 @@
+{
+  "job_id": "j-ATQn3MNG-XdGYcK",
+  "company_name": "Max Test Company",
+  "job_type": "Employee",
+  "tenant_name": "Maxwell Henderson",
+  "total_items_processed": 100,
+  "total_invalid_items": 25,
+  "job_timestamp": "2025-07-08T21:44:22.970215-07:00",
+  "employees": [
+    {
+      "first_name": "Maxwell",
+      "last_name": "Henderson",
+      "email": "maxwell@maxwellhenderson.com"
+    },
+    {
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john@johndoe.com"
+    }
+  ]
+}

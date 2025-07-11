@@ -84,7 +84,7 @@ const createJobInDynamoDB = async (jobMetadata, s3ObjectKey) => {
   const command = new PutItemCommand({
     TableName: jobTable,
     Item: {
-      jobId: { S: jobMetadata.jobId },
+      jobId: { S: jobMetadata.job_id },
       companyName: { S: jobMetadata.company_name },
       jobType: { S: jobMetadata.job_type },
       tenantName: { S: jobMetadata.tenant_name },

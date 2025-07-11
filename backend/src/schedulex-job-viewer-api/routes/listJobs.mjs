@@ -13,16 +13,31 @@ const listJobs = async (event, context) => {
     const response = await dynamoDBClient.send(command);
     console.log("DynamoDB response:", response);
 
-    // Transform DynamoDB items to a more readable format
     const jobs = response.Items.map((item) => ({
-      jobId: item.jobId.S,
-      companyName: item.companyName.S,
-      jobType: item.jobType.S,
-      tenantName: item.tenantName.S,
-      totalItemsProcessed: parseInt(item.totalItemsProcessed.N),
-      totalInvalidItems: parseInt(item.totalInvalidItems.N),
-      jobTimestamp: item.jobTimestamp.S,
-      s3ObjectKey: item.s3ObjectKey.S,
+      jobId: item.jobId && item.jobId.S != null ? item.jobId.S : null,
+      companyName:
+        item.companyName && item.companyName.S != null
+          ? item.companyName.S
+          : null,
+      jobType: item.jobType && item.jobType.S != null ? item.jobType.S : null,
+      tenantName:
+        item.tenantName && item.tenantName.S != null ? item.tenantName.S : null,
+      totalItemsProcessed:
+        item.totalItemsProcessed && item.totalItemsProcessed.N != null
+          ? parseInt(item.totalItemsProcessed.N)
+          : null,
+      totalInvalidItems:
+        item.totalInvalidItems && item.totalInvalidItems.N != null
+          ? parseInt(item.totalInvalidItems.N)
+          : null,
+      jobTimestamp:
+        item.jobTimestamp && item.jobTimestamp.S != null
+          ? item.jobTimestamp.S
+          : null,
+      s3ObjectKey:
+        item.s3ObjectKey && item.s3ObjectKey.S != null
+          ? item.s3ObjectKey.S
+          : null,
     }));
 
     return {
@@ -34,7 +49,6 @@ const listJobs = async (event, context) => {
         "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
       },
       body: JSON.stringify({
-        message: `Successfully retrieved ${jobs.length} jobs`,
         jobs: jobs,
         count: jobs.length,
       }),
