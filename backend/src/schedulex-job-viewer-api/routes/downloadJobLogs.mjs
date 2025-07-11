@@ -36,6 +36,8 @@ const downloadJobLogs = async (event, context) => {
     const command = new GetObjectCommand({
       Bucket: s3Bucket,
       Key: s3ObjectName,
+      ResponseContentDisposition: `attachment; filename="${s3ObjectName}"`,
+      ResponseContentType: "application/json",
     });
 
     // Generate presigned URL for download without checking if object exists

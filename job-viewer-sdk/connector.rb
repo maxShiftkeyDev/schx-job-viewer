@@ -19,7 +19,7 @@
 
   actions: {
     create_new_employee_job: {
-      title: 'Create New Job',
+      title: 'Create New Employee Job',
       description: 'Create New Job',
       input_fields: ->(object_definitions){
         object_definitions[:create_new_employee_job_input]
