@@ -42,8 +42,7 @@
         
         response = call('create_new_employee_job', job_id, company_name, job_type, tenant_name, total_items_processed, total_invalid_items, job_timestamp)
         presigned_url = response['presignedUrl']
-        job_log = employees.to_json
-        s3_response = call('upload_job_log_to_s3', presigned_url, job_log)
+        s3_response = call('upload_job_log_to_s3', presigned_url, employees)
 
         
         return response
@@ -81,44 +80,66 @@
       puts response
       response
     },
+
+    # workato dopcumentation for using csv.generate
+    # csv.generate
+    # Allows you to generate a CSV string from a JSON array so you can send it to a downstream system as a file.
+    # workato.csv.generate(headers: ["color", "amount"], col_sep: ";") do |csv|
+    #   csv << [:blue, 1]
+    #   csv << [:white, 2]
+    # end
+    # Takes five arguments:
+    # headers
+    # Either true (First row of actual CSV will be used as headers), array of string (corresponding to each column header) or string (Artificial first row of the CSV with appropriate column separator).
+    # col_sep
+    # The column separator in the CSV. Defaults to ,.
+    # row_sep
+    # The row separator in the CSV. Defaults to \n.
+    # quote_char
+    # The quoting character in the CSV. Defaults to double quotes ".
+    # force_quotes
+    # Boolean that determines whether each output field should be quoted.
+    # Finally, one lambda that allows you to append individual rows to this CSV as an array of strings.
+   
     json_to_csv: ->(json_data) {
-      # Parse JSON if it's a string
-      data = json_data.is_a?(String) ? JSON.parse(json_data) : json_data
-      
-      # Define CSV headers
-      headers = ["first_name", "last_name", "email"]
-      
-      # Start with headers
-      csv_content = headers.join(",") + "\n"
-      
-      # Add data rows
-      data.each do |employee|
-        row = [
-          employee["first_name"] || "",
-          employee["last_name"] || "",
-          employee["email"] || ""
-        ].map { |field| field.to_s.gsub('"', '""') } # Escape quotes
-        csv_content += row.join(",") + "\n"
+      return '' if json_data.empty?
+    
+      keys = json_data.first.keys
+      puts "keys"
+      puts keys
+    
+      csv_string = workato.csv.generate(headers: keys) do |csv|
+        json_data.each do |row|
+          csv << keys.map { |k| row[k] }
+        end
       end
-      
-      csv_content
+      puts "csv_string"
+      puts csv_string
+      csv_string
     },
-    upload_job_log_to_s3: ->(presigned_url, job_log){
+    upload_job_log_to_s3: ->(presigned_url, job_log) {
       puts "uploading job log to s3"
-      
-      if presigned_url.nil?
-        puts "ERROR: presigned_url is nil!"
-        return { error: "No presigned URL received from API" }
-      end
-      
-      # Convert JSON to CSV
-      csv_data = call('json_to_csv', job_log)
-      
-      # Upload CSV data to S3
-      response = put(presigned_url, csv_data)
-        .headers("Content-Type" => "text/csv")
-      puts "S3 Upload Response: #{response}"
-      response
+      return { error: "No presigned URL received from API" } if presigned_url.nil?
+    
+      csv_string = call('json_to_csv', job_log)
+      bom = "\uFEFF"
+      csv_with_bom = bom + csv_string
+    
+      require 'uri'
+      require 'net/http'
+    
+      uri = URI.parse(presigned_url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+    
+      request = Net::HTTP::Put.new(uri)
+      request.body = csv_with_bom
+      request['Content-Type'] = 'text/csv; charset=utf-8'
+    
+      response = http.request(request)
+    
+      puts "S3 Upload Response: #{response.code} #{response.message}"
+      { status: response.code, message: response.message }
     }
   },
 
@@ -230,27 +251,6 @@
             label: "S3 Object Key",
             type: :string,
           }
-        ]
-      }
-    },
-    list_jobs_output_count: {
-      fields: ->(_connection, _config_fields, object_definitions){
-        [
-          {
-            name: "count",
-            label: "Count",
-            type: :integer,
-          }
-        ]
-      }
-    }
-  },
-
-  pick_lists: {
-
-  }
-}
-
         ]
       }
     },
