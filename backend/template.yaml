@@ -8,29 +8,30 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 30
 
 Resources:
   ##########################################
-  # API Gateway - shared for all endpoints
+  # S3 Bucket for Job Logs
   ##########################################
-  ScheduleX-Job-Viewer-Api:
-    Type: AWS::Serverless::Api
+  S3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      StageName: Prod
-      Name: schedulex-job-viewer-api
-      Cors:
-        AllowMethods: "'OPTIONS,GET,POST,PUT'"
-        AllowHeaders: "'Content-Type'"
-        AllowOrigin: "'*'"
+      BucketName: schx-job-view-test-bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   ##########################################
   # DynamoDB Table - ScheduleX Job Metadata Table
   ##########################################
-  ScheduleX-Job-Metadata-Table:
+  ScheduleXJobMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: schedulex-job-metadata
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: jobId
           AttributeType: S
@@ -50,20 +51,25 @@ Resources:
   ##########################################
   # Create New Job Function
   ##########################################
-  ScheduleX-Job-Viewer-API:
+  ScheduleXJobViewerAPI:
     Type: AWS::Serverless::Function
     Properties:
-      PackageType: Image
       CodeUri: src/schedulex-job-viewer-api
       Handler: index.handler
+      Runtime: nodejs22.x
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          SCHEDULEX_JOB_METADATA_TABLE_NAME: !Ref ScheduleXJobMetadataTable
+          PROJECT_REGION: !Ref AWS::Region
+          S3_BUCKET_NAME: !Ref S3Bucket
       Events:
         CreateNewJob:
           Type: Api
           Properties:
             Path: /create-new-job
-            Method: post
+            Method: put
         ListJobs:
           Type: Api
           Properties:
@@ -73,36 +79,29 @@ Resources:
           Type: Api
           Properties:
             Path: /download-job-logs
-            Method: get
-    Metadata:
-      DockerTag: nodejs22.x-v1
-      DockerContext: ./src/schedulex-job-viewer-api
-      Dockerfile: Dockerfile
+            Method: post
     Policies:
-      - PolicyName: ScheduleXJobViewerApiPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-                - dynamodb:DeleteItem
-              Resource: !GetAtt ScheduleX-Job-Metadata-Table.Arn
+      - DynamoDBCrudPolicy:
+          TableName: !Ref ScheduleXJobMetadataTable
+      - S3CrudPolicy:
+          BucketName: !Ref S3Bucket
+      - Statement:
+          Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource: !Sub "${S3Bucket.Arn}/*"
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  # API Gateway endpoint URL
+  ScheduleXJobViewerFunction:
+    Description: "ScheduleX Job Viewer Lambda Function ARN"
+    Value: !GetAtt ScheduleXJobViewerAPI.Arn
+  ScheduleXJobViewerFunctionRole:
+    Description: "Implicit IAM Role created for ScheduleX Job Viewer function"
+    Value: !GetAtt ScheduleXJobViewerAPIRole.Arn
+  ScheduleXJobMetadataTableName:
+    Description: "Name of the DynamoDB table for job metadata"
+    Value: !Ref ScheduleXJobMetadataTable
+  ScheduleXJobMetadataTableArn:
+    Description: "ARN of the DynamoDB table for job metadata"
+    Value: !GetAtt ScheduleXJobMetadataTable.Arn
