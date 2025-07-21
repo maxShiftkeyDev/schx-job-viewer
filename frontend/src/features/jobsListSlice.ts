@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
-  const response = await fetch(
-    "https://vsa99h8mq4.execute-api.us-east-1.amazonaws.com/Prod/list-jobs"
-  );
+  const response = await fetch(`${API_URL}/list-jobs`);
   return response.json().then((data) => {
     const jobsArray = data.jobs || data;
     return jobsArray;
