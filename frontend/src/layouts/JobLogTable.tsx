@@ -15,6 +15,8 @@ import {
 import { Download } from "@mui/icons-material";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 export const JobLogTable = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -113,10 +115,6 @@ export const JobLogTable = () => {
     },
   ];
 
-  if (status === "loading") {
-    return <div>Loading jobs...</div>;
-  }
-
   return (
     <div>
       <Stack direction="row" spacing={2}>
@@ -127,7 +125,27 @@ export const JobLogTable = () => {
           Clear Filter
         </Button>
       </Stack>
-      <DataGrid rows={jobs} columns={columns} getRowId={(row) => row.jobId} />
+      <Box sx={{ position: "relative" }}>
+        <DataGrid
+          rows={jobs}
+          columns={columns}
+          getRowId={(row) => row.jobId}
+          loading={status === "loading"}
+        />
+        {status === "loading" && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 1,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        )}
+      </Box>
     </div>
   );
 };

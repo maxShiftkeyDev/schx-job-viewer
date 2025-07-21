@@ -11,6 +11,8 @@ interface DownloadLogButtonProps {
   s3ObjectName: string;
 }
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const DownloadLogButton = ({ s3ObjectName }: DownloadLogButtonProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,13 +20,10 @@ export const DownloadLogButton = ({ s3ObjectName }: DownloadLogButtonProps) => {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      const response = await fetch(
-        "https://vsa99h8mq4.execute-api.us-east-1.amazonaws.com/Prod/download-job-logs",
-        {
-          method: "POST",
-          body: JSON.stringify({ s3ObjectName }),
-        }
-      );
+      const response = await fetch(`${API_URL}/download-job-logs`, {
+        method: "POST",
+        body: JSON.stringify({ s3ObjectName }),
+      });
 
       if (response.ok) {
         const data = await response.json();
