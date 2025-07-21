@@ -2,6 +2,29 @@
 
 A web application for viewing and managing ScheduleX integration jobs. This app provides a user-friendly interface to monitor job processing, filter results by company, and download job logs.
 
+## Project Overview
+
+This project consists of three main components that work together:
+
+### 🖥️ **Frontend (React/Vite)**
+
+- Web application for viewing and managing ScheduleX jobs
+- Connects to the backend API to fetch job data and download logs
+- Provides filtering and user interface functionality
+
+### 🔧 **Backend (AWS Lambda)**
+
+- REST API service running on AWS Lambda
+- Handles job data retrieval and log file generation
+- Provides endpoints for listing jobs and generating download URLs
+- **Status**: Already deployed and running in AWS
+
+### 🔌 **Workato SDK Connector**
+
+- Custom Workato connector for ScheduleX integrations
+- Provides `create_new_employee_job` action for Workato workflows
+- Must be deployed to individual Workato tenants for use
+
 ## Project Documentation
 
 📋 **[Project Diagram & Architecture](https://miro.com/app/board/uXjVIqTyRNc=/)** - View the complete project design, architecture, and workflow diagrams
@@ -13,28 +36,20 @@ A web application for viewing and managing ScheduleX integration jobs. This app 
 - **Job Log Downloads**: Download CSV log files for each job directly from the application
 - **Real-time Status**: View job processing statistics including total items processed and invalid items
 
-## What the App Does
-
-The application connects to the ScheduleX API to:
-
-1. **Fetch Job Data**: Calls the `list-jobs` endpoint to retrieve all ScheduleX integration jobs
-2. **Display Job Information**: Shows job details including company name, tenant, job type, processing statistics, and timestamps
-3. **Filter by Company**: Allows users to filter the job list by company name for easier navigation
-4. **Download Job Logs**: Provides functionality to download CSV log files for each job using presigned URLs
-
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
 - Yarn package manager
+- Workato CLI (for SDK deployment)
 
-### Installation
+### Frontend Setup
 
 1. **Clone the repository:**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/maxShiftkeyDev/schx-job-viewer.git
    cd schx-job-viewer
    ```
 
@@ -52,7 +67,7 @@ The application connects to the ScheduleX API to:
    VITE_API_URL=https://vsa99h8mq4.execute-api.us-east-1.amazonaws.com/Prod
    ```
 
-4. **Run the application:**
+4. **Run the frontend application:**
 
    ```bash
    yarn dev
@@ -60,6 +75,28 @@ The application connects to the ScheduleX API to:
 
 5. **Open your browser:**
    Navigate to `http://localhost:5173` to view the application
+
+### Workato SDK Deployment
+
+To deploy the SDK connector to a Workato tenant:
+
+1. **Navigate to the SDK directory:**
+
+   ```bash
+   cd job-viewer-sdk
+   ```
+
+2. **Deploy to your Workato tenant:**
+
+   ```bash
+   workato push <your-tenant-api-key>
+   ```
+
+3. **Verify deployment:**
+   - The `create_new_employee_job` action will be available in your Workato tenant
+   - You can now use this connector in your Workato workflows
+
+**Note**: The backend API is already deployed and running in AWS, so no additional setup is required for the backend component.
 
 ## Usage
 
