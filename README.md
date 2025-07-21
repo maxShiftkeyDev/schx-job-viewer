@@ -16,7 +16,7 @@ This project consists of three main components that work together:
 
 - REST API service running on AWS Lambda
 - Handles job data retrieval and log file generation
-- Provides endpoints for listing jobs and generating download URLs
+- Provides endpoints for creating jobs, listing jobs and generating download URLs
 - **Status**: Already deployed and running in AWS
 
 ### 🔌 **Workato SDK Connector**
@@ -24,6 +24,7 @@ This project consists of three main components that work together:
 - Custom Workato connector for ScheduleX integrations
 - Provides `create_new_employee_job` action for Workato workflows
 - Must be deployed to individual Workato tenants for use
+- Futrure state expand to punches and add input for incoming + invalid punches
 
 ## Project Documentation
 
